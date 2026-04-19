@@ -3,19 +3,15 @@ use crate::data::Block;
 
 pub const DEPTH_CONSTANT: f64 = 2.0;
 
-// ─── INTERNAL NODE ───────────────────────────────
-// lightweight — no metadata, just structure
 pub struct InternalNode {
-    pub weight: usize,        // left subtree size
-    pub total: usize,         // full subtree size
-    pub valuation: usize,     // v_2(total)
+    pub weight: usize,        
+    pub total: usize,         
+    pub valuation: usize,     
     pub depth: usize,
     pub left: Box<Node>,
     pub right: Box<Node>,
 }
 
-// ─── LEAF NODE ───────────────────────────────────
-// rich — holds actual content + parser metadata
 pub struct LeafNode {
     pub text: String,
     pub block: RefCell<Block>,
@@ -23,7 +19,6 @@ pub struct LeafNode {
     pub ast_cache: RefCell<Option<Block>>,
 }
 
-// ─── NODE ENUM ───────────────────────────────────
 pub enum Node {
     Internal(InternalNode),
     Leaf(LeafNode),
@@ -55,8 +50,6 @@ impl Node {
         matches!(self, Node::Leaf(_))
     }
 }
-
-// ─── MATH ────────────────────────────────────────
 
 pub fn valuation(n: usize) -> usize {
     if n == 0 { return usize::MAX; }

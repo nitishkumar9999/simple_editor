@@ -3,7 +3,6 @@ use crate::data::{Align, BlockKind};
 pub fn parse_metadata(raw: &str) -> (BlockKind, Align) {
     let cmd_part = raw.split_whitespace().next().unwrap_or("");
 
-    // compound commands — must match before splitting on :
     let compound = match cmd_part {
         "$BI:ST" | "$ST:BI" => Some(BlockKind::BoldItalicStrike),
         "$B:ST"  | "$ST:B"  => Some(BlockKind::BoldStrike),
@@ -15,12 +14,12 @@ pub fn parse_metadata(raw: &str) -> (BlockKind, Align) {
         return (kind, Align::Left);
     }
 
-    // split on : to separate command from alignment modifier
+    
     let mut parts = cmd_part.splitn(2, ':');
     let cmd = parts.next().unwrap_or("").trim();
     let modifier = parts.next().unwrap_or("").trim();
 
-    // $CODE is special — language comes after $CODE prefix
+    
     if cmd.starts_with("$CODE") {
         let lang = cmd
             .strip_prefix("$CODE")

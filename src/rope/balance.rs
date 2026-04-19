@@ -40,7 +40,6 @@ fn merge_score(left: &Node, right: &Node) -> usize {
     valuation_p(total, p)
 }
 
-// ─── MERGE CANDIDATE ─────────────────────────────
 
 #[derive(Eq)]
 pub struct MergeCandidate {
@@ -67,7 +66,6 @@ impl PartialEq for MergeCandidate {
     }
 }
 
-// ─── COLLECT ─────────────────────────────────────
 
 pub fn collect_leaves(node: Box<Node>) -> Vec<Box<Node>> {
     if node.is_leaf() {
@@ -83,7 +81,6 @@ pub fn collect_leaves(node: Box<Node>) -> Vec<Box<Node>> {
     }
 }
 
-// ─── REBUILD (heap) ───────────────────────────────
 
 pub fn rebuild(
     mut nodes: Vec<Box<Node>>,
@@ -126,7 +123,6 @@ pub fn rebuild(
     nodes.remove(0)
 }
 
-// ─── STRICT BALANCE (fallback) ────────────────────
 
 pub fn strict_balance(
     mut leaves: Vec<Box<Node>>,
@@ -141,7 +137,6 @@ pub fn strict_balance(
     new_internal(left_node, right_node)
 }
 
-// ─── REBALANCE ────────────────────────────────────
 
 pub fn rebalance(
     node: Box<Node>,
@@ -169,7 +164,6 @@ pub fn rebalance_if_needed(
     }
 }
 
-// ─── BLOCK BOUNDARY ──────────────────────────────
 
 pub fn find_block_boundary(lines: &[&str], from: usize) -> usize {
     let mut i = from;
