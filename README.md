@@ -12,7 +12,7 @@ THE PROBLEM WITH STANDARD APPROACHES
 
 A plain string is simple but expensive. Every insert at position i requires shifting all characters after i — O(n) per edit. For a 30,000 character document that becomes noticeable.
 
-A rope solves this by splitting the document into chunks stored in a binary tree. Insert and delete become O(log n) because you only touch the path from root to the affected leaf. Editors like VS Code and Xi use rope-based structures internally for this reason.
+A rope solves this by splitting the document into chunks stored in a binary tree. Insert and delete become O(log n) because you only touch the path from root to the affected leaf. Editors like Zed and Helix use rope-based structures internally for this reason.
 
 Standard ropes balance by size — keep subtree weights roughly equal, keep the tree shallow. The size-balancing heuristic is correct but blind. It knows nothing about what the text means. A paragraph and a code block of identical byte length are indistinguishable to a standard rope. I wanted the tree to know the difference.
 
