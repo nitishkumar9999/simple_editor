@@ -1,7 +1,3 @@
-Here's the rewritten post:
-
----
-
 **What if a rope data structure used p-adic geometry? I built it to find out**
 
 ---
