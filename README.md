@@ -6,9 +6,9 @@ Here's the rewritten post:
 
 ---
 
-I was building a markdown editor for my platform StringTechHub. At some point I needed to decide how to represent the document internally. I could use a plain string, a gap buffer, or a standard rope. Instead I asked a different question: can number theory give us a better way to organize text than size-balanced trees?
+I was building a markdown editor for my platform [StringTechHub](https://stringtechhub.com). At some point I needed to decide how to represent the document internally. I could use a plain string, a gap buffer, or a standard rope. Instead I asked a different question: can number theory give us a better way to organize text than size-balanced trees?
 
-This post is about what that means, what I built, what I measured, and what I learned. The code is at [github link]. The editor runs at https://stringtechhub.com.
+This post is about what that means, what I built, what I measured, and what I learned.
 
 ---
 
