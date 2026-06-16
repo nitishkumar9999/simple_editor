@@ -70,5 +70,20 @@ impl TextStyles {
     }
 }
 
+#[derive(Debug, Serialize, Clone)]
+#[serde(tag = "type", content = "value")]
+pub enum InlineFragment {
+    Text(String),
+    Bold(String),
+    Italic(String),
+    BoldItalic(String),
+    Strike(String),
+    ItalicStrike(String),
+    BoldStrike(String),
+    BoldItalicStrike(String),
+    InlineCode(String),
+    Link { label: String, url: String },
+}
+
 
 

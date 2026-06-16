@@ -44,7 +44,6 @@ pub fn parse_inline(text: &str) -> Vec<Fragment> {
                                             url: url.trim().to_string(),
                                         });
                                     } else {
-                                        // malformed $LINK — no pipe separator, treat as text
                                         fragments.push(Fragment::Text(format!("\"{}\"", inside)));
                                     }
                                 }
@@ -64,7 +63,6 @@ pub fn parse_inline(text: &str) -> Vec<Fragment> {
                                 }
                             }
                         } else {
-                            // no " - " separator — literal quoted text
                             fragments.push(Fragment::Text(format!("\"{}\"", inside)));
                         }
 

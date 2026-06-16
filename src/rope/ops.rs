@@ -1,14 +1,53 @@
 use crate::data::Block;
 use crate::rope::{
-    node::Node,
+    node::{Node, LeafNode, to_char_boundary},
     builder::{new_leaf, new_internal},
     balance::{rebalance, rebalance_if_needed, find_block_boundary},
 };
 
+pub fn find_leaf_at(node: &Node, pos: usize) -> Option<&LeafNode> {
+    match node {
+        Node::Leaf(leaf) => Some(leaf),
+        Node::Internal(internal) => {
+            if pos < internal.weight {
+                find_leaf_at(&internal.left, pos)
+            } else {
+                find_leaf_at(&internal.right, pos - internal.weight)
+            }
+        }
+    }
+}
+
+pub fn block_index_at(node: &Node, target: usize) -> usize {
+    let mut count = 0;
+    let mut pos = 0;
+    walk_for_block(node, target, &mut pos, &mut count);
+    count
+}
+
+fn walk_for_block(node: &Node, target: usize, pos: &mut usize, count: &mut usize) {
+    match node {
+        Node::Leaf(leaf) => {
+            if target >= *pos && target < *pos + leaf.text.len() {
+                return;
+            }
+            *pos += leaf.text.len();
+            *count += 1;
+        }
+        Node::Internal(n) => {
+            walk_for_block(&n.left, target, pos, count);
+            walk_for_block(&n.right, target, pos, count);
+        }
+    }
+}
 
 pub fn index(node: &Node, i: usize) -> Option<char> {
     match node {
-        Node::Leaf(leaf) => leaf.text.chars().nth(i),
+        Node::Leaf(leaf) => {
+            let s = &leaf.text;
+            let i = to_char_boundary(s, i);
+            s[i..].chars().next()
+        },
         Node::Internal(internal) => {
             if i < internal.weight {
                 index(&internal.left, i)
@@ -52,11 +91,14 @@ pub fn split(
             }
 
             let boundary_line = find_block_boundary(&lines, line_idx);
-            let boundary_char = lines[..boundary_line]
-                .iter()
-                .map(|l| l.len() + 1)
-                .sum::<usize>()
-                .min(leaf.text.len());
+            let boundary_char = to_char_boundary(
+                &leaf.text,
+                lines[..boundary_line]
+                    .iter()
+                    .map(|l| l.len() + 1)
+                    .sum::<usize>()
+                    .min(leaf.text.len()),
+            );
 
             if boundary_char == 0 {
                 return (new_leaf(String::new(), parser), node);
@@ -100,17 +142,17 @@ pub fn split_exact (
 ) -> (Box<Node>, Box<Node>) {
     match *node {
         Node::Leaf(ref leaf) => {
-            let boundary_char = i.min(leaf.text.len());
+            let boundary = to_char_boundary(&leaf.text, i.min(leaf.text.len()));
 
-            if boundary_char == 0 {
+            if boundary == 0 {
                 return (new_leaf(String::new(), parser), node);
             }
-            if boundary_char >= leaf.text.len() {
+            if boundary >= leaf.text.len() {
                 return (node, new_leaf(String::new(), parser));
             }
 
-            let left_text = leaf.text[..boundary_char].to_string();
-            let right_text = leaf.text[boundary_char..].to_string();
+            let left_text = leaf.text[..boundary].to_string();
+            let right_text = leaf.text[boundary..].to_string();
 
             (
                 new_leaf(left_text, parser),
@@ -176,4 +218,94 @@ fn save_document(
     let text = collect_text(rope);
 
     std::fs::write(file_path, text).expect("failed to save");
+}
+pub fn substring(node: &Node, i: usize, j: usize) -> String {
+    if i >= j { return String::new(); }
+    match node {
+        Node::Leaf(leaf) => {
+            let start = to_char_boundary(&leaf.text, i.min(leaf.text.len()));
+            let end = to_char_boundary(&leaf.text, j.min(leaf.text.len()));
+            leaf.text[start..end].to_string()
+        }
+        Node::Internal(internal) => {
+            if j <= internal.weight {
+                substring(&internal.left, i, j)
+            } else if i >= internal.weight {
+                substring(&internal.right, i - internal.weight, j - internal.weight)
+            } else {
+                let left_part = substring(&internal.left, i, internal.weight);
+                let right_part = substring(&internal.right, 0, j - internal.weight);
+                left_part + &right_part
+            }
+        }
+    }
+}
+
+pub fn line_at(node: &Node, n: usize) -> Option<String> {
+    let mut target = n;
+    line_at_inner(node, &mut target)
+}
+
+fn line_at_inner(node: &Node, remaining: &mut usize) -> Option<String> {
+    match node {
+        Node::Leaf(leaf) => {
+            for line in leaf.text.lines() {
+                if *remaining == 0 {
+                    return Some(line.to_string());
+                }
+                *remaining -= 1;
+            }
+            None
+        }
+        Node::Internal(n) => {
+            line_at_inner(&n.left, remaining)
+                .or_else(|| line_at_inner(&n.right, remaining))
+        }
+    }
+}
+
+pub fn replace(
+    node: Box<Node>,
+    i: usize,
+    j: usize,
+    s: String,
+    parser: &dyn Fn(&str) -> Block,
+) -> Box<Node> {
+    let (left, rest)     = split_exact(node, i, parser);
+    let (_mid, right)    = split_exact(rest,  j - i, parser);
+    let middle           = new_leaf(s, parser);
+    rope_concat(rope_concat(left, middle), right)
+}
+
+use std::cell::Ref;
+
+pub struct BlockIter<'a> {
+    stack: Vec<&'a Node>,
+}
+
+impl<'a> BlockIter<'a> {
+    pub fn new(root: &'a Node) -> Self {
+        BlockIter { stack: vec![root] }
+    }
+}
+
+impl<'a> Iterator for BlockIter<'a> {
+    type Item = Ref<'a, crate::data::Block>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(node) = self.stack.pop() {
+            match node {
+                Node::Leaf(leaf) => return Some(leaf.block.borrow()),
+                Node::Internal(n) => {
+                    self.stack.push(&n.right);
+                    self.stack.push(&n.left);
+                }
+            }
+        }
+        None
+    }
+}
+
+pub fn iter_blocks(root: &Node) -> BlockIter<'_> {
+    BlockIter::new(root)
 }
