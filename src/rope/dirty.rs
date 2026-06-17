@@ -4,15 +4,15 @@ use crate::rope::node::Node;
 
 // Public API
 
-// Re-parse every dirty leaf in the tree, updating its block and cache.
-// Skips entire subtrees where `has_dirty` is false.
-// This is the main entry point — callers should use this, not the internals.
+/// Re-parse every dirty leaf in the tree, updating its block and cache.
+/// Skips entire subtrees where `has_dirty` is false.
+/// This is the main entry point — callers should use this, not the internals.
 pub fn force_resolve(node: &mut Node, parser: &dyn Fn(&str) -> Block) {
     resolve_dirty_targeted(node, parser);
 }
 
-// Mark the leaf containing byte offset `i` as dirty.
-// Propagates `has_dirty = true` up the ancestor chain.
+/// Mark the leaf containing byte offset `i` as dirty.
+/// Propagates `has_dirty = true` up the ancestor chain.
 pub fn mark_dirty(node: &mut Node, i: usize) {
     match node {
         Node::Leaf(leaf) => {
@@ -30,8 +30,8 @@ pub fn mark_dirty(node: &mut Node, i: usize) {
     }
 }
 
-// Count the number of dirty leaves in the tree.
-// Useful for diagnostics and tests.
+/// Count the number of dirty leaves in the tree.
+/// Useful for diagnostics and tests.
 pub fn count_dirty(node: &Node) -> usize {
     match node {
         Node::Leaf(leaf)  => usize::from(leaf.dirty.get()),
