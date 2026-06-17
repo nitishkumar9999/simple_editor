@@ -14,7 +14,7 @@ pub struct CursorPos {
 
 // Public API
 
-// Convert a byte offset in the rope to a (line, col, block_index) position.
+/// Convert a byte offset in the rope to a (line, col, block_index) position.
 pub fn offset_to_pos(root: &Node, offset: usize) -> CursorPos {
     let mut s = OffsetState {
         target_byte:    offset,
@@ -34,8 +34,8 @@ pub fn offset_to_pos(root: &Node, offset: usize) -> CursorPos {
     }
 }
 
-// Convert a (line, col) position to a byte offset. Returns None if the
-// line doesn't exist in the rope.
+/// Convert a (line, col) position to a byte offset. Returns None if the
+/// line doesn't exist in the rope.
 pub fn pos_to_offset(root: &Node, line: usize, col: usize) -> Option<usize> {
     let mut s = LineState {
         target_line:    line,
@@ -48,8 +48,8 @@ pub fn pos_to_offset(root: &Node, line: usize, col: usize) -> Option<usize> {
     s.result
 }
 
-// Convert a char index (Unicode scalar count) to a byte offset.
-// Returns `root.total()` if char_index is past the end.
+/// Convert a char index (Unicode scalar count) to a byte offset.
+/// Returns `root.total()` if char_index is past the end.
 pub fn char_to_byte_offset(root: &Node, char_index: usize) -> usize {
     let mut s = CharWalkState {
         target_char:    char_index,
@@ -61,8 +61,8 @@ pub fn char_to_byte_offset(root: &Node, char_index: usize) -> usize {
     s.result.unwrap_or_else(|| root.total())
 }
 
-// Count the total number of Unicode scalar values in the subtree.
-// Internal nodes cache this; leaf nodes count on demand.
+/// Count the total number of Unicode scalar values in the subtree.
+/// Internal nodes cache this; leaf nodes count on demand.
 pub fn count_chars(node: &Node) -> usize {
     match node {
         Node::Leaf(leaf)     => leaf.text.chars().count(),
