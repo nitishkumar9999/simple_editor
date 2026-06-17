@@ -4,7 +4,7 @@ use crate::data::Block;
 
 // Constants
 
-// The depth growth constant: max allowed depth = DEPTH_CONSTANT × log₂(total).
+/// The depth growth constant: max allowed depth = DEPTH_CONSTANT × log₂(total).
 pub const DEPTH_CONSTANT: f64 = 2.0;
 
 
@@ -84,14 +84,14 @@ fn subtree_has_dirty(node: &Node) -> bool {
 
 // Free functions: math primitives
 
-// Number of trailing zero bits in `n` — used as a merge priority.
-// Returns `usize::MAX` for 0 (treat empty as infinitely valuable to merge).
+/// Number of trailing zero bits in `n` — used as a merge priority.
+/// Returns `usize::MAX` for 0 (treat empty as infinitely valuable to merge).
 pub fn valuation(n: usize) -> usize {
     if n == 0 { return usize::MAX; }
     n.trailing_zeros() as usize
 }
 
-// Maximum tree depth allowed for a rope of `total` bytes before rebalancing.
+/// Maximum tree depth allowed for a rope of `total` bytes before rebalancing.
 pub fn max_allowed_depth(total: usize) -> usize {
     if total <= 1 { return 1; }
     (DEPTH_CONSTANT * (total as f64).log2()) as usize
@@ -100,7 +100,7 @@ pub fn max_allowed_depth(total: usize) -> usize {
 
 // Free functions: tree structure queries
 
-// Height of the subtree rooted at `node`. Leaves have depth 1.
+/// Height of the subtree rooted at `node`. Leaves have depth 1.
 pub fn depth(node: &Node) -> usize {
     match node {
         Node::Leaf(_)     => 1,
@@ -108,7 +108,7 @@ pub fn depth(node: &Node) -> usize {
     }
 }
 
-// Total number of `\n` bytes in the subtree (cached in internal nodes).
+/// Total number of `\n` bytes in the subtree (cached in internal nodes).
 pub fn line_count(node: &Node) -> usize {
     match node {
         Node::Leaf(leaf)  => leaf.text.bytes().filter(|&b| b == b'\n').count(),
@@ -116,7 +116,7 @@ pub fn line_count(node: &Node) -> usize {
     }
 }
 
-// Number of leaf nodes in the subtree (cached in internal nodes).
+/// Number of leaf nodes in the subtree (cached in internal nodes).
 pub fn leaf_count(node: &Node) -> usize {
     match node {
         Node::Leaf(_)     => 1,
@@ -127,8 +127,8 @@ pub fn leaf_count(node: &Node) -> usize {
 
 // Free functions: string utilities
 
-// Advance `i` forward until it lands on a UTF-8 character boundary.
-// Clamps to `s.len()` if `i` is at or past the end.
+/// Advance `i` forward until it lands on a UTF-8 character boundary.
+/// Clamps to `s.len()` if `i` is at or past the end.
 pub fn to_char_boundary(s: &str, mut i: usize) -> usize {
     if i >= s.len() { return s.len(); }
     while !s.is_char_boundary(i) { i += 1; }
