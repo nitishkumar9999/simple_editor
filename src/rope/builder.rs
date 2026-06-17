@@ -9,8 +9,8 @@ use crate::rope::{
 
 // helpers
 
-// Normalise line endings and ensure every block-level `$CMD` starts on
-// its own line. Inline `"$CMD - ..."` spans inside quotes are left alone.
+/// Normalise line endings and ensure every block-level `$CMD` starts on
+/// its own line. Inline `"$CMD - ..."` spans inside quotes are left alone.
 fn normalize_document(input: &str) -> String {
     let mut result       = String::with_capacity(input.len() + 64);
     let mut prev_newline = true;
@@ -60,8 +60,8 @@ fn normalize_document(input: &str) -> String {
 
 // Node constructors
 
-// An empty leaf — used as a neutral element for empty documents or
-// empty sides of a split.
+/// An empty leaf — used as a neutral element for empty documents or
+/// empty sides of a split.
 pub fn new_leaf_empty() -> Box<Node> {
     Box::new(Node::Leaf(LeafNode {
         text:      String::new(),
@@ -75,7 +75,7 @@ pub fn new_leaf_empty() -> Box<Node> {
     }))
 }
 
-// A leaf node whose block type is determined by running `parser` on `text`.
+/// A leaf node whose block type is determined by running `parser` on `text`.
 pub fn new_leaf(text: String, parser: &dyn Fn(&str) -> Block) -> Box<Node> {
     let block = parser(&text);
     Box::new(Node::Leaf(LeafNode {
@@ -86,7 +86,7 @@ pub fn new_leaf(text: String, parser: &dyn Fn(&str) -> Block) -> Box<Node> {
     }))
 }
 
-// An internal node whose metadata is derived from its two children.
+/// An internal node whose metadata is derived from its two children.
 pub fn new_internal(left: Box<Node>, right: Box<Node>) -> Box<Node> {
     let total      = left.total() + right.total();
     let weight     = left.total();
@@ -112,8 +112,8 @@ pub fn new_internal(left: Box<Node>, right: Box<Node>) -> Box<Node> {
 
 // Document builder
 
-// Build a rope from a raw DSL string. Each top-level block becomes one
-// leaf node; the leaves are then assembled by `balance::rebuild`.
+/// Build a rope from a raw DSL string. Each top-level block becomes one
+/// leaf node; the leaves are then assembled by `balance::rebuild`.
 pub fn build_rope_from_document(
     input:  &str,
     parser: &dyn Fn(&str) -> Block,
