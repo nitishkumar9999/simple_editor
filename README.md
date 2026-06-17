@@ -2,6 +2,26 @@
 
 ---
 
+## Running Vadic
+
+**Dependencies**
+- Rust — https://rustup.rs
+- wasm-pack — `cargo install wasm-pack`
+
+**Build**
+```bash
+wasm-pack build --target web
+```
+
+**Run**
+```bash
+cargo run
+```
+
+Open `http://127.0.0.1:8080` in your browser.
+
+---
+
 ## 1. Overview
 
 **Vadic** is a structured document editor built on a p-adic valuation rope — a binary tree of text chunks where merge priority is determined by the p-adic valuation of the merged block size, weighted by block type. It is implemented in Rust and compiled to WebAssembly. Documents are written in a command-prefixed DSL where block-level constructs begin with a `$CMD` on their own line and inline formatting lives inside `"$CMD - content"` spans. The entire document model — parsing, rope operations, dirty-flag propagation, cursor arithmetic, undo history — lives in Rust. JavaScript handles only the DOM.
@@ -10,13 +30,15 @@
 
 ## 2. The DSL
 
-I use EndeavourOS. Most of my workflow is command-based, and I have always found that way of working faster and more natural than reaching for a mouse or remembering which button does what. When I started writing longer documents I kept running into the same frustration with markdown — I had to stop and think about the syntax. Is it `**` or `*` for bold? Does this list need a blank line before it? Does this heading need a space after the hash? Every one of those moments breaks the flow of writing.
+I use EndeavourOS. Most of my workflow is command-based, and I have always found that way of working faster and more natural than reaching for a mouse or remembering which button does what. I was using pulldown-cmark for my website and working on getting markdown to render correctly. The more I worked with it the more the syntax bothered me — not as a reader but as someone building with it. Is it `**` or `*` for bold? Does this list need a blank line before it? Does this heading need a space after the hash? The rules are inconsistent across implementations and the syntax itself has no clear structure you can reason about.
 
 I also did not like editors that put formatting buttons at the top. You write something, then move your hand to click bold, then come back and find your cursor. That friction adds up.
 
 So I designed a syntax around commands, because commands are what I know. Every block starts with `$CMD`. You type it and keep going. There is no ambiguity — a block command starts a line, an inline command lives inside quotes. That is the entire rule. You learn it once and you never think about it again.
 
 The other thing I wanted was for the document to be readable in the editor while you type it — not just in the preview. With command prefixes, every line tells you what it is. `$H2 - Title` is obviously a heading. `$BQ` followed by indented lines is obviously a block quote. You do not need the preview to understand what you are writing.
+
+There are keyboard shortcuts for things like table navigation and indentation. But one thing I noticed while building this is that the commands themselves are faster than shortcuts in most cases. With markdown you need shortcuts because the syntax is hard to remember and slow to type. With `$CMD` you just type the command and move on. The shortcut and the syntax are the same thing.
 
 ### Block commands
 
@@ -60,17 +82,6 @@ $CODE - rust
 
 Block quotes support an optional `--` attribution line. `$TOC` auto-generates from all headings — just place it where you want it and it builds itself.
 
-### Alignment
-
-Any block command accepts a colon modifier:
-
-```
-$P:C - This paragraph is centered
-$H2:R - This heading is right aligned
-```
-
-`:C` for center, `:R` for right. Default is left.
-
 ### Tables
 
 Tables use `$TB` with indented pipe-delimited rows. First row is the header, second is the separator, rest are data:
@@ -83,7 +94,7 @@ $TB
     | Alan        | Theorist   | Active   |
 ```
 
-Typing `$TB 4|5` and pressing Enter scaffolds a 4-column, 5-row table automatically. Tab moves between cells, Shift+Tab goes backwards. The separator row is skipped during navigation.
+For example, typing `$TB 4|5` and pressing Enter scaffolds a 4-column, 5-row table automatically. Tab moves between cells, Shift+Tab goes backwards. The separator row is skipped during navigation.
 
 ### Inline formatting
 
@@ -105,7 +116,7 @@ A paragraph with inline formatting:
 
 ```
 $P - Vadic is written in "$B - Rust" and compiled to "$ICODE - .wasm".
-The source is at "$LINK - github | https://github.com/nitishkumar9999/vadic".
+The source is at "$LINK - github | https://github.com/nitishkumar9999/simple_editor".
 ```
 
 ### Escaping
@@ -456,11 +467,11 @@ Insert and delete scale linearly, not logarithmically. Document size grows 15x a
 
 ## Conclusion
 
-Vadic is still early. The DSL is complete and working. The rope is built and the WASM boundary is clean. The benchmarks are honest about where the performance currently stands.
+Vadic is still early. Few cases are not handled yet. The DSL handles everyday editing well — paragraphs, headings, lists, tables, code blocks, block quotes, links, images. The rope is built and the WASM boundary is clean. The benchmarks are honest about where the performance currently stands.
 
 The next concrete thing to build is true incremental reparsing — using the dirty flags and per-leaf block cache that are already in place, instead of reparsing the full document on every render. That alone would bring edit performance in line with navigation performance.
 
-After that the plan is to expand the command set. Math notation, cross-references, custom block types, etc.... The architecture makes this straightforward — adding a block type means extending `BlockKind`, adding a parser branch, and adding a render case. Nothing structural changes.
+After that the plan is to expand the command set. Math notation, cross-references, custom block types, etc. The architecture makes this straightforward — adding a block type means extending `BlockKind`, adding a parser branch, and adding a render case. Nothing structural changes.
 
 The p-adic prime assignment is also something I want to test properly at some point. Right now prime 3 for list blocks was an intuitive choice, not a measured one. It might be the right call, it might not be. Worth finding out.
 
