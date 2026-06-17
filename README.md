@@ -293,6 +293,20 @@ pub struct InternalNode {
 
 Each leaf holds a raw text chunk — the literal DSL bytes for one block — alongside a cached `Block` and a dirty flag. Internal nodes cache aggregate metadata. These caches are what make O(log n) cursor arithmetic possible without walking the entire tree on every keypress.
 
+### Cursor arithmetic
+
+Because internal nodes cache `line_count`, `char_count`, and `leaf_count`, all cursor operations are O(log n). At each internal node you check the left subtree's cached count and decide which side to descend into — no full traversal needed.
+
+Three operations are exposed at the WASM boundary:
+
+**`cursor_pos(byte_offset)`** — converts a byte offset to a `(line, col, block_index)` position. Walking the tree, at each internal node the cached `line_count` of the left subtree tells you whether the target offset is on the left or right side. Once you reach the leaf, you scan only that leaf's text to find the exact line and column.
+
+**`offset_at_char(char_index)`** — converts a Unicode scalar index to a byte offset. Internal nodes cache `char_count` for the left subtree, so the walk is the same — compare, descend, scan the leaf.
+
+**`pos_to_offset(line, col)`** — the reverse of `cursor_pos`. Walk by `line_count` to find the right leaf, then scan within the leaf to find the column byte position.
+
+The JavaScript side calls `cursor_pos` on every keypress and click, using the result to scroll the preview pane to the block at `block_index`. This is why `block_index` is part of the cursor position — the preview and the editor stay in sync without the JS side doing any position arithmetic of its own.
+
 ### The dirty flag system
 
 Reparsing the whole document on every keystroke would be too slow. Vadic uses a lazy dirty-flag system instead. When a leaf's text changes, its `dirty` flag is set. The `has_dirty` field on every ancestor internal node is also set. On the next render call, `force_resolve` walks the tree and skips any subtree where `has_dirty` is `false` — only the affected leaves get reparsed:
@@ -467,12 +481,8 @@ Insert and delete scale linearly, not logarithmically. Document size grows 15x a
 
 ## Conclusion
 
-Vadic is still early. Few cases are not handled yet. The DSL handles everyday editing well — paragraphs, headings, lists, tables, code blocks, block quotes, links, images. The rope is built and the WASM boundary is clean. The benchmarks are honest about where the performance currently stands.
-
-The next concrete thing to build is true incremental reparsing — using the dirty flags and per-leaf block cache that are already in place, instead of reparsing the full document on every render. That alone would bring edit performance in line with navigation performance.
+Vadic is still early and some cases are not handled yet. The DSL handles everyday editing well — paragraphs, headings, lists, tables, code blocks, block quotes, links, images. The rope is built and the WASM boundary is clean. The benchmarks are honest about where the performance currently stands.
 
 After that the plan is to expand the command set. Math notation, cross-references, custom block types, etc. The architecture makes this straightforward — adding a block type means extending `BlockKind`, adding a parser branch, and adding a render case. Nothing structural changes.
-
-The p-adic prime assignment is also something I want to test properly at some point. Right now prime 3 for list blocks was an intuitive choice, not a measured one. It might be the right call, it might not be. Worth finding out.
 
 If you find this useful or have thoughts on the design, the issues are open.
