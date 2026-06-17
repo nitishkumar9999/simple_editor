@@ -8,8 +8,8 @@ use crate::rope::{
 
 // Concatenation
 
-// Join two ropes, rebalancing if the result is too deep.
-// Returns the non-empty side directly when one side is empty.
+/// Join two ropes, rebalancing if the result is too deep.
+/// Returns the non-empty side directly when one side is empty.
 pub fn rope_concat(left: Box<Node>, right: Box<Node>) -> Box<Node> {
     if left.total()  == 0 { return right; }
     if right.total() == 0 { return left; }
@@ -19,8 +19,8 @@ pub fn rope_concat(left: Box<Node>, right: Box<Node>) -> Box<Node> {
 
 // Split operations
 
-// Split at an exact byte offset, creating two new leaves at the cut point.
-// Used by insert, delete, and replace — does not respect block boundaries.
+/// Split at an exact byte offset, creating two new leaves at the cut point.
+/// Used by insert, delete, and replace — does not respect block boundaries.
 pub fn split_exact(
     node:   Box<Node>,
     i:      usize,
@@ -52,8 +52,8 @@ pub fn split_exact(
     }
 }
 
-// Split at the nearest block boundary to byte offset `i`.
-// Prefers keeping DSL blocks intact rather than splitting mid-block.
+/// Split at the nearest block boundary to byte offset `i`.
+/// Prefers keeping DSL blocks intact rather than splitting mid-block.
 pub fn split(
     node:   Box<Node>,
     i:      usize,
@@ -148,7 +148,7 @@ pub fn replace(
 
 // Text extraction
 
-// Concatenate the text of every leaf in document order.
+/// Concatenate the text of every leaf in document order.
 pub fn collect_text(node: &Node) -> String {
     match node {
         Node::Leaf(leaf)  => leaf.text.clone(),
@@ -160,7 +160,7 @@ pub fn collect_text(node: &Node) -> String {
     }
 }
 
-// Extract the bytes in the range `[i, j)`.
+/// Extract the bytes in the range `[i, j)`.
 pub fn substring(node: &Node, i: usize, j: usize) -> String {
     if i >= j { return String::new(); }
     match node {
@@ -183,7 +183,7 @@ pub fn substring(node: &Node, i: usize, j: usize) -> String {
     }
 }
 
-// Return the text of the nth line (0-indexed), or None if out of range.
+/// Return the text of the nth line (0-indexed), or None if out of range.
 pub fn line_at(node: &Node, n: usize) -> Option<String> {
     let mut target = n;
     line_at_inner(node, &mut target)
@@ -208,7 +208,7 @@ fn line_at_inner(node: &Node, remaining: &mut usize) -> Option<String> {
 
 // Navigation and search
 
-// Find the leaf node that covers byte offset `pos`.
+/// Find the leaf node that covers byte offset `pos`.
 pub fn find_leaf_at(node: &Node, pos: usize) -> Option<&LeafNode> {
     match node {
         Node::Leaf(leaf)     => Some(leaf),
@@ -222,7 +222,7 @@ pub fn find_leaf_at(node: &Node, pos: usize) -> Option<&LeafNode> {
     }
 }
 
-// Return the block index (0-based leaf ordinal) that contains byte offset `target`.
+/// Return the block index (0-based leaf ordinal) that contains byte offset `target`.
 pub fn block_index_at(node: &Node, target: usize) -> usize {
     let mut count = 0;
     let mut pos   = 0;
@@ -230,8 +230,8 @@ pub fn block_index_at(node: &Node, target: usize) -> usize {
     count
 }
 
-// Walk the tree looking for the leaf covering `target`.
-// Returns `true` when found so callers can short-circuit — O(log n).
+/// Walk the tree looking for the leaf covering `target`.
+/// Returns `true` when found so callers can short-circuit — O(log n).
 fn walk_for_block(node: &Node, target: usize, pos: &mut usize, count: &mut usize) -> bool {
     match node {
         Node::Leaf(leaf) => {
@@ -249,7 +249,7 @@ fn walk_for_block(node: &Node, target: usize, pos: &mut usize, count: &mut usize
     }
 }
 
-// Return the character at byte offset `i`, snapping to the nearest char boundary.
+/// Return the character at byte offset `i`, snapping to the nearest char boundary.
 pub fn index(node: &Node, i: usize) -> Option<char> {
     match node {
         Node::Leaf(leaf)  => {
