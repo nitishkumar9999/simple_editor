@@ -39,7 +39,7 @@ pub enum Node {
 // impl Node
 
 impl Node {
-    // Total byte length of this subtree.
+    /// Total byte length of this subtree.
     pub fn total(&self) -> usize {
         match self {
             Node::Internal(n) => n.total,
@@ -47,7 +47,7 @@ impl Node {
         }
     }
 
-    // Byte length of the left subtree (= total for leaves).
+    /// Byte length of the left subtree (= total for leaves).
     pub fn weight(&self) -> usize {
         match self {
             Node::Internal(n) => n.weight,
