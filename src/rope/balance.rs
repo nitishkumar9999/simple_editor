@@ -256,8 +256,8 @@ pub fn compact(node: Box<Node>) -> Box<Node> {
 
 // Utilities used by ops.rs
 
-// Walk backwards then forwards from `from` to find the nearest line that
-// starts a new DSL block (starts with `$`, not indented).
+/// Walk backwards then forwards from `from` to find the nearest line that
+/// starts a new DSL block (starts with `$`, not indented).
 pub fn find_block_boundary(lines: &[&str], from: usize) -> usize {
     let mut i = from;
     while i > 0 {
